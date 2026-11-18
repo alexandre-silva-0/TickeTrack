@@ -16,7 +16,7 @@ import { ILoginBody } from "../dtos/auth.dto.js";
 //RabbitMQ
 import { publishMessage } from "../config/rabbitmq.js";
 
-export const register = async (req: Request<{}, {}, IRegisterBody>, res: Response): Promise<void> => {
+export async function register(req: Request<{}, {}, IRegisterBody>, res: Response): Promise<void> {
     const { name, email, role, password } = req.body
 
     //function to hash the password
@@ -62,7 +62,7 @@ export const register = async (req: Request<{}, {}, IRegisterBody>, res: Respons
     })
 }
 
-export const login = async (req: Request<{}, {}, ILoginBody>, res: Response) => {
+export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
 
     const { email, password } = req.body
 
@@ -99,7 +99,11 @@ export const login = async (req: Request<{}, {}, ILoginBody>, res: Response) => 
     })
 }
 
-export const currentuser = async (req: IAuthRequest, res: Response) => {
+export async function logout(req: IAuthRequest, res: Response) {
+
+}
+
+export async function currentuser(req: IAuthRequest, res: Response) {
     const user = await getUserById(req.user!.id)
 
     if (!user) {
@@ -111,7 +115,7 @@ export const currentuser = async (req: IAuthRequest, res: Response) => {
 
 }
 
-export const allUsers = async (req: Request, res: Response) => {
+export async function allUsers(req: Request, res: Response) {
     try {
 
         const users = await getAllUsers()
@@ -123,7 +127,7 @@ export const allUsers = async (req: Request, res: Response) => {
     }
 }
 
-export const changeRole = async (req: IAuthRequest, res: Response) => {
+export async function changeRole(req: IAuthRequest, res: Response) {
 
     console.log(req.user)
 
@@ -139,7 +143,7 @@ export const changeRole = async (req: IAuthRequest, res: Response) => {
 
 }
 
-export const syncAllUsers = async (req: IAuthRequest, res: Response) => {
+export async function syncAllUsers(req: IAuthRequest, res: Response) {
     const users = await getAllUsers()
 
     users.forEach(async (user) => {
@@ -151,5 +155,5 @@ export const syncAllUsers = async (req: IAuthRequest, res: Response) => {
         })
     })
 
-    res.status(200).json({msg: "Usuários sincronizados."})
+    res.status(200).json({ msg: "Usuários sincronizados." })
 }

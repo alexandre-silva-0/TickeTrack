@@ -13,7 +13,7 @@ const router = Router()
 
 router.post('/api/auth/register', userRegisterValidation, validate, register)
 router.post('/api/auth/login', userLoginValidation, validate, login)
-// logout route
+router.post('/api/auth/logout')
 router.get('/api/users/me', checkToken, currentuser)
 router.get('/api/users/', checkToken, allUsers)
 router.patch('/api/users/:id/role', checkToken, checkAuthorization, changeRoleValidation, validate, changeRole)
