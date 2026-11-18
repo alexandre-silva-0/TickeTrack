@@ -3,6 +3,7 @@ node_modules/
 
 # Variáveis de Ambiente
 .env
+.env.*
 
 # Build do TypeScript (MUITO IMPORTANTE)
 dist/
