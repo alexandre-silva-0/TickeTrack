@@ -22,8 +22,8 @@ export class User extends Model {
     declare name: string;
 
     @AllowNull(false)
-    @Column(DataType.ENUM('agent', 'customer', 'admin'))
-    declare role: 'agent' | 'customer' | 'admin'
+    @Column(DataType.ENUM('agent', 'customer', 'supervisor', 'admin'))
+    declare role: 'agent' | 'customer' | 'supervisor' | 'admin'
 
     @AllowNull(false)
     @Column(DataType.STRING)
