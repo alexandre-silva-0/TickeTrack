@@ -1,10 +1,8 @@
 import { Sequelize } from 'sequelize-typescript'
-import dotenv from 'dotenv'
 
 //models
 import { User } from '../models/User.js'
 
-dotenv.config()
 
 const sequelize = new Sequelize({
     database: process.env.DB_NAME!,

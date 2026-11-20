@@ -1,5 +1,6 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import dotenv from 'dotenv'
 
 //db connection
 import database from './config/database.js'
@@ -12,6 +13,7 @@ import { connectRabbitMQ } from './config/rabbitmq.js'
 
 const app = express()
 
+dotenv.config()
 app.use(express.json())
 app.use(cookieParser())
 

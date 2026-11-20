@@ -7,25 +7,14 @@ export const userRegisterValidation: ValidationChain[] = [
         .isString().withMessage("Valor inválido."),
     body("email")
         .notEmpty().withMessage("O e-mail é obrigatório.")
-        .isEmail().withMessage("Insira um e-mail válido.")
-        .custom(async (value) => {
-            const user = await getUserByEmail(value)
-            if (user) {
-                throw new Error("Usuário já cadastrado.")
-            }
-
-            return true
-        })
-    ,
+        .isEmail().withMessage("Insira um e-mail válido."),
     body("role")
         .notEmpty().withMessage("O tipo de usuário é obrigatório.")
-        .isIn(['agent', 'customer', 'admin']).withMessage('Tipo de usuário inválido, selecione um dos valores acima.')
-    ,
+        .isIn(['agent', 'customer', 'admin']).withMessage('Tipo de usuário inválido, selecione um dos valores acima.'),
     body("password")
         .notEmpty().withMessage("Insira uma senha.")
         .isString().withMessage('Valor inválido.')
-        .isLength({ min: 6 }).withMessage("A senha deve ter no mínimo 6 caracteres.")
-    ,
+        .isLength({ min: 6 }).withMessage("A senha deve ter no mínimo 6 caracteres."),
     body("confirm-password")
         .notEmpty().withMessage("Confirme sua senha.")
         .isString().withMessage('Valor inválido.')
@@ -45,16 +34,8 @@ export const userRegisterValidation: ValidationChain[] = [
 export const userLoginValidation: ValidationChain[] = [
     body('email')
         .notEmpty().withMessage("O e-mail é obrigatório.")
-        .isEmail().withMessage("Insira um e-mail válido.")
-        .custom(async (value) => {
-            const user = await getUserByEmail(value)
-            if (!user) {
-                throw new Error("Usuário não cadastrado.")
-            }
-
-            return true
-        })
-    , body('password')
+        .isEmail().withMessage("Insira um e-mail válido."),
+    body('password')
         .trim()
         .notEmpty().withMessage('Informe sua senha.')
 

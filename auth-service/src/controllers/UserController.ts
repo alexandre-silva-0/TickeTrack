@@ -15,6 +15,7 @@ import { ILoginBody } from "../dtos/auth.dto.js";
 
 //RabbitMQ
 import { publishMessage } from "../config/rabbitmq.js";
+import { clearCookie, createCookie } from "../helpers/cookie-helper.js";
 
 export async function register(req: Request<{}, {}, IRegisterBody>, res: Response): Promise<void> {
     const { name, email, role, password } = req.body
@@ -35,12 +36,7 @@ export async function register(req: Request<{}, {}, IRegisterBody>, res: Respons
         const token = generateToken(createdUser.id, createdUser.role)
 
         //register token in the cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000,
-            sameSite: 'strict'
-        })
-
+        createCookie(res, token)
 
         //prepara o payload que vai para o rabbitmq
         const userCreatedEvent = {
@@ -63,7 +59,7 @@ export async function register(req: Request<{}, {}, IRegisterBody>, res: Respons
         })
 
     } catch (error) {
-        console.log(error)
+        console.error(error)
         res.status(500).json({ errors: "Não foi possível criar sua conta." })
     }
 }
@@ -72,29 +68,25 @@ export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
 
     const { email, password } = req.body
 
-    const user = await getUserByEmail(email)
-
-    if (!user) {
-        throw new Error("Usuário não cadastrado.")
-    }
-
-    //compare if the password matches
-    const isValidPassword = checkPassword(password, user!.hashedPassword)
-
-    if (!isValidPassword) {
-        res.status(401).json({ msg: "E-mail ou senha incorretos, tente novamente." })
-    }
-
-    //create jwt token
-    const token = generateToken(user.id, user.role)
-
     try {
+        const user = await getUserByEmail(email)
+
+        if (!user) {
+            return res.status(401).json({ msg: "E-mail ou senha incorretos, tente novamente." })
+        }
+
+        //compare if the password matches
+        const isValidPassword = checkPassword(password, user!.hashedPassword)
+
+        if (!isValidPassword) {
+            return res.status(401).json({ msg: "E-mail ou senha incorretos, tente novamente." })
+        }
+
+        //create jwt token
+        const token = generateToken(user.id, user.role)
+
         //register token in the cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000,
-            sameSite: 'strict'
-        })
+        createCookie(res, token)
 
         res.status(200).json({
             msg: "Login realizado com sucesso.",
@@ -105,22 +97,14 @@ export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
             }
         })
     } catch (error) {
-        console.log(error)
+        console.error(error)
         res.status(500).json({ errors: "Não foi possível conectar à sua conta." })
     }
-
-
 }
 
-export async function logout(req: IAuthRequest, res: Response) {
-
-    try {
-        res.clearCookie("token")
-        res.status(200).json({})
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ errors: "Não foi possível desconectar sua conta." })
-    }
+export function logout(req: Request, res: Response) {
+    clearCookie(res)
+    res.status(204)
 }
 
 export async function currentuser(req: IAuthRequest, res: Response) {
@@ -150,7 +134,7 @@ export async function allUsers(req: Request, res: Response) {
 
 export async function changeRole(req: IAuthRequest, res: Response) {
 
-    console.log(req.user)
+    console.error(req.user)
 
     const { id, role } = req.body
 
