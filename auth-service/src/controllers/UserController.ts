@@ -27,39 +27,45 @@ export async function register(req: Request<{}, {}, IRegisterBody>, res: Respons
         name, email, role, hashedPassword
     }
 
-    //create the user in db
-    const createdUser = await createUser(user)
+    try {
+        //create the user in db
+        const createdUser = await createUser(user)
 
-    //create jwt token
-    const token = generateToken(createdUser.id, createdUser.role)
+        //create jwt token
+        const token = generateToken(createdUser.id, createdUser.role)
 
-    //register token in the cookie
-    res.cookie('token', token, {
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: 'strict'
-    })
+        //register token in the cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+            sameSite: 'strict'
+        })
 
 
-    //prepara o payload que vai para o rabbitmq
-    const userCreatedEvent = {
-        id: createdUser.id,
-        name: createdUser.name,
-        email: createdUser.email,
-        role: createdUser.role
-    }
-
-    //dispara a mensagem para a queue
-    await publishMessage('user_created', userCreatedEvent)
-
-    res.status(201).json({
-        msg: "Usuário criado com sucesso.",
-        user: {
+        //prepara o payload que vai para o rabbitmq
+        const userCreatedEvent = {
             id: createdUser.id,
+            name: createdUser.name,
             email: createdUser.email,
             role: createdUser.role
         }
-    })
+
+        //dispara a mensagem para a queue
+        await publishMessage('user_created', userCreatedEvent)
+
+        res.status(201).json({
+            msg: "Usuário criado com sucesso.",
+            user: {
+                id: createdUser.id,
+                email: createdUser.email,
+                role: createdUser.role
+            }
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ errors: "Não foi possível criar sua conta." })
+    }
 }
 
 export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
@@ -82,25 +88,39 @@ export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
     //create jwt token
     const token = generateToken(user.id, user.role)
 
-    //register token in the cookie
-    res.cookie('token', token, {
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: 'strict'
-    })
+    try {
+        //register token in the cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000,
+            sameSite: 'strict'
+        })
 
-    res.status(200).json({
-        msg: "Login realizado com sucesso.",
-        user: {
-            id: user.id,
-            email: user.email,
-            role: user.role
-        }
-    })
+        res.status(200).json({
+            msg: "Login realizado com sucesso.",
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role
+            }
+        })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ errors: "Não foi possível conectar à sua conta." })
+    }
+
+
 }
 
 export async function logout(req: IAuthRequest, res: Response) {
 
+    try {
+        res.clearCookie("token")
+        res.status(200).json({})
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ errors: "Não foi possível desconectar sua conta." })
+    }
 }
 
 export async function currentuser(req: IAuthRequest, res: Response) {
@@ -124,6 +144,7 @@ export async function allUsers(req: Request, res: Response) {
 
     } catch (error) {
         console.error("Erro ao carregar todos os usuários", error)
+        res.status(500).json({ errors: "Não foi possível carregar todos os usuários." })
     }
 }
 
@@ -139,6 +160,7 @@ export async function changeRole(req: IAuthRequest, res: Response) {
         res.status(201).json({ msg: "Usuário atualizado com sucesso" })
     } catch (error) {
         console.error("Erro ao atualizar tipo de usuário", error)
+        res.status(500).json({ errors: "Não foi possível atualizar o tipo de usuário." })
     }
 
 }

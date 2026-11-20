@@ -11,7 +11,7 @@ import { checkToken } from "../helpers/jwt-helper.js";
 const router = Router()
 
 
-router.post('/api/tickets/createticket', checkToken, createTicketValidations, validate, createTicket)
+router.post('/api/tickets/', checkToken, createTicketValidations, validate, createTicket)
 
 
 export default router
