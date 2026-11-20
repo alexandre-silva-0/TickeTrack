@@ -2,8 +2,7 @@
 import { Request, Response } from "express";
 
 //helpers
-import { createHashedPassword, checkPassword } from "../helpers/bcrypt-helper.js";
-import { generateToken } from "../helpers/jwt-helper.js";
+import { clearCookie, createCookie } from "../helpers/cookie-helper.js";
 
 //repositories
 import { createUser, getUserByEmail, getUserById, getAllUsers, updateUserRole } from "../repositories/UserRepository.js";
@@ -15,96 +14,50 @@ import { ILoginBody } from "../dtos/auth.dto.js";
 
 //RabbitMQ
 import { publishMessage } from "../config/rabbitmq.js";
-import { clearCookie, createCookie } from "../helpers/cookie-helper.js";
 
-export async function register(req: Request<{}, {}, IRegisterBody>, res: Response): Promise<void> {
-    const { name, email, role, password } = req.body
+//services
+import { authenticate, registerUser } from "../services/AuthService.js";
+import { AppError } from "../errors/AppError.js";
 
-    //function to hash the password
-    const hashedPassword = createHashedPassword(password)
-
-    //Set the user
-    const user: ICreatedUserData = {
-        name, email, role, hashedPassword
-    }
-
+export async function register(req: Request<{}, {}, IRegisterBody>, res: Response) {
     try {
-        //create the user in db
-        const createdUser = await createUser(user)
+        const { user, token } = await registerUser(req.body)
 
-        //create jwt token
-        const token = generateToken(createdUser.id, createdUser.role)
-
-        //register token in the cookie
         createCookie(res, token)
-
-        //prepara o payload que vai para o rabbitmq
-        const userCreatedEvent = {
-            id: createdUser.id,
-            name: createdUser.name,
-            email: createdUser.email,
-            role: createdUser.role
+        res.status(201).json({ user })
+    } catch (error) {
+        if (error instanceof AppError) {
+            res.status(error.statusCode).json({ error: error.message })
+            return
         }
 
-        //dispara a mensagem para a queue
-        await publishMessage('user_created', userCreatedEvent)
-
-        res.status(201).json({
-            msg: "Usuário criado com sucesso.",
-            user: {
-                id: createdUser.id,
-                email: createdUser.email,
-                role: createdUser.role
-            }
-        })
-
-    } catch (error) {
         console.error(error)
-        res.status(500).json({ errors: "Não foi possível criar sua conta." })
+        res.status(500).json({ error: "Não foi possível criar sua conta." })
     }
 }
 
 export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
-
     const { email, password } = req.body
 
     try {
-        const user = await getUserByEmail(email)
+        const result = await authenticate(email, password)
 
-        if (!user) {
-            return res.status(401).json({ msg: "E-mail ou senha incorretos, tente novamente." })
+        if (!result) {
+            res.status(401).json({ error: "E-mail ou senha incorretos." })
+            return
         }
 
-        //compare if the password matches
-        const isValidPassword = checkPassword(password, user!.hashedPassword)
-
-        if (!isValidPassword) {
-            return res.status(401).json({ msg: "E-mail ou senha incorretos, tente novamente." })
-        }
-
-        //create jwt token
-        const token = generateToken(user.id, user.role)
-
-        //register token in the cookie
-        createCookie(res, token)
-
-        res.status(200).json({
-            msg: "Login realizado com sucesso.",
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            }
-        })
+        createCookie(res, result.token)
+        res.status(200).json({ user: result.user })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ errors: "Não foi possível conectar à sua conta." })
+        res.status(500).json({ error: "Não foi possível fazer login." })
     }
 }
 
-export function logout(req: Request, res: Response) {
+export function logout(_req: Request, res: Response) {
     clearCookie(res)
-    res.status(204)
+    res.sendStatus(204)
 }
 
 export async function currentuser(req: IAuthRequest, res: Response) {
