@@ -8,7 +8,7 @@ const options: CookieOptions = {
     secure: process.env.NODE_ENV === 'development' ? false : true
 }
 
-const AUTH_COOKIE_NAME = 'token'
+export const AUTH_COOKIE_NAME = 'token'
 
 export const createCookie = (res: Response, token: string) => {
     res.cookie(AUTH_COOKIE_NAME, token, options)

@@ -24,7 +24,7 @@ export async function createUser(data: ICreatedUserData) {
 }
 
 export async function getAllUsers() {
-    return await User.findAll({ raw: true })
+    return await User.findAll({ raw: true, attributes: { exclude: ['hashedPassword'] } })
 }
 
 export async function updateUserRole(data: IUpdateUserRole) {

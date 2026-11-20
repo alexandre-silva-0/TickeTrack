@@ -1,6 +1,6 @@
 //helpers
-import { checkPassword, createHashedPassword } from "../helpers/bcrypt-helper.js"
-import { generateToken } from "../helpers/jwt-helper.js"
+import { checkPassword, createHashedPassword } from "../utils/bcrypt.js"
+import { generateToken } from "../utils/jwt.js"
 
 //repositories
 import { createUser, getUserByEmail } from "../repositories/UserRepository.js"
@@ -10,7 +10,7 @@ import { publishMessage } from "../config/rabbitmq.js"
 
 //types
 import { User } from "../models/User.js"
-import { IRegisterBody } from "../dtos/auth.dto.js"
+import { ICreateUserBody } from "../dtos/auth.dto.js"
 import { AppError } from "../errors/AppError.js"
 
 // O que pode sair do serviço sobre um usuário. Nunca o hash da senha.
@@ -35,7 +35,7 @@ export async function authenticate(email: string, password: string) {
     return { user: toPublicUser(user), token }
 }
 
-export async function registerUser(data: IRegisterBody) {
+export async function createNewUser(data: ICreateUserBody) {
     const { name, email, password, role } = data
 
     const existingUser = await getUserByEmail(email)
@@ -56,7 +56,5 @@ export async function registerUser(data: IRegisterBody) {
 
     await publishMessage('user_created', publicUser)
 
-    const token = generateToken(createdUser.id, createdUser.role)
-
-    return { user: publicUser, token }
+    return { user: publicUser }
 }

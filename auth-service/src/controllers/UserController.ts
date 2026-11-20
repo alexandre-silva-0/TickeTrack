@@ -2,29 +2,27 @@
 import { Request, Response } from "express";
 
 //helpers
-import { clearCookie, createCookie } from "../helpers/cookie-helper.js";
+import { clearCookie, createCookie } from "../utils/cookie.js";
 
 //repositories
-import { createUser, getUserByEmail, getUserById, getAllUsers, updateUserRole } from "../repositories/UserRepository.js";
+import { getUserById, getAllUsers, updateUserRole } from "../repositories/UserRepository.js";
 
 //interfaces
-import { IAuthRequest, IRegisterBody } from "../dtos/auth.dto.js";
-import { ICreatedUserData } from "../dtos/auth.dto.js";
+import { IAuthRequest, ICreateUserBody } from "../dtos/auth.dto.js";
 import { ILoginBody } from "../dtos/auth.dto.js";
 
 //RabbitMQ
 import { publishMessage } from "../config/rabbitmq.js";
 
 //services
-import { authenticate, registerUser } from "../services/AuthService.js";
+import { authenticate, createNewUser } from "../services/AuthService.js";
 import { AppError } from "../errors/AppError.js";
 
-export async function register(req: Request<{}, {}, IRegisterBody>, res: Response) {
+export async function createUserByAdmin(req: Request<{}, {}, ICreateUserBody>, res: Response) {
     try {
-        const { user, token } = await registerUser(req.body)
+        const { user } = await createNewUser(req.body)
 
-        createCookie(res, token)
-        res.status(201).json({ user })
+        res.status(201).json({ msg: 'Usuário criado com sucesso.', data: user })
     } catch (error) {
         if (error instanceof AppError) {
             res.status(error.statusCode).json({ error: error.message })
@@ -32,7 +30,7 @@ export async function register(req: Request<{}, {}, IRegisterBody>, res: Respons
         }
 
         console.error(error)
-        res.status(500).json({ error: "Não foi possível criar sua conta." })
+        res.status(500).json({ error: "Não foi possível criar usuário." })
     }
 }
 
@@ -87,13 +85,12 @@ export async function allUsers(req: Request, res: Response) {
 
 export async function changeRole(req: IAuthRequest, res: Response) {
 
-    console.error(req.user)
-
-    const { id, role } = req.body
+    const { id } = req.params
+    const { role } = req.body
 
     try {
-        await updateUserRole({ id, role })
-
+        await updateUserRole({ id: Number(id), role })
+        await publishMessage('user_updated', { id, role })
         res.status(201).json({ msg: "Usuário atualizado com sucesso" })
     } catch (error) {
         console.error("Erro ao atualizar tipo de usuário", error)

@@ -1,11 +1,11 @@
 import { Request } from "express";
 
-//Interface to register route
-export interface IRegisterBody {
+//Interface to create user route
+export interface ICreateUserBody {
     name: string;
     email: string;
     password: string;
-    role: 'agent' | 'customer' | 'admin'
+    role: 'agent' | 'customer' | 'supervisor' | 'admin'
 }
 
 //Interface to create a user
@@ -13,7 +13,7 @@ export interface ICreatedUserData {
     name: string;
     email: string;
     hashedPassword: string;
-    role: 'agent' | 'customer' | 'admin'
+    role: 'agent' | 'customer' | 'supervisor' | 'admin'
 }
 
 //Interface to login route
