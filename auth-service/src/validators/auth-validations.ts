@@ -14,7 +14,7 @@ export const createUserValidation: ValidationChain[] = [
         .notEmpty().withMessage("Insira uma senha.")
         .isString().withMessage('Valor inválido.')
         .isLength({ min: 6 }).withMessage("A senha deve ter no mínimo 6 caracteres."),
-    body("confirm-password")
+    body("confirmPassword")
         .notEmpty().withMessage("Confirme a senha.")
         .isString().withMessage('Valor inválido.')
         .custom((value, { req }) => {

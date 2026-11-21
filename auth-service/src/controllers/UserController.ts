@@ -15,7 +15,7 @@ import { ILoginBody } from "../dtos/auth.dto.js";
 import { publishMessage } from "../config/rabbitmq.js";
 
 //services
-import { authenticate, createNewUser } from "../services/AuthService.js";
+import { authenticate, createNewUser, updateRole } from "../services/AuthService.js";
 import { AppError } from "../errors/AppError.js";
 
 export async function createUserByAdmin(req: Request<{}, {}, ICreateUserBody>, res: Response) {
@@ -59,15 +59,17 @@ export function logout(_req: Request, res: Response) {
 }
 
 export async function currentuser(req: IAuthRequest, res: Response) {
-    const user = await getUserById(req.user!.id)
-
-    if (!user) {
-        res.status(404).json({ error: "Usuário não encontrado." })
-        return
+    try {
+        const user = await getUserById(req.user!.id)
+        if (!user) {
+            res.status(404).json({ error: "Usuário não encontrado." })
+            return
+        }
+        res.status(200).json({ user })
+    } catch (error) {
+        console.error("Erro ao carregar usuário logado", error)
+        res.status(500).json({ errors: "Não foi possível carregar o usuário conectado." })
     }
-
-    res.status(200).json({ user })
-
 }
 
 export async function allUsers(req: Request, res: Response) {
@@ -89,8 +91,7 @@ export async function changeRole(req: IAuthRequest, res: Response) {
     const { role } = req.body
 
     try {
-        await updateUserRole({ id: Number(id), role })
-        await publishMessage('user_updated', { id, role })
+        await updateRole({ id: Number(id), role })
         res.status(201).json({ msg: "Usuário atualizado com sucesso" })
     } catch (error) {
         console.error("Erro ao atualizar tipo de usuário", error)

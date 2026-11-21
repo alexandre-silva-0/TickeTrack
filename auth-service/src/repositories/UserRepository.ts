@@ -28,5 +28,6 @@ export async function getAllUsers() {
 }
 
 export async function updateUserRole(data: IUpdateUserRole) {
-    return await User.update({ role: data.role }, { where: { id: data.id } })
+    await User.update({ role: data.role }, { where: { id: data.id } })
+    return
 }

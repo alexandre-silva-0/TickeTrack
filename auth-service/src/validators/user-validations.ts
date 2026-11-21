@@ -18,15 +18,7 @@ export const checkAuthorization = (req: IAuthRequest, res: Response, next: NextF
 
 export const changeRoleValidation: ValidationChain[] = [
     param('id')
-        .notEmpty().withMessage("O id do usuário é obrigatório.")
-        .custom(async (value) => {
-            const user = await getUserById(value)
-            if (!user) {
-                throw new Error("Usuário não cadastrado.")
-            }
-
-            return true
-        }),
+        .notEmpty().withMessage("O id do usuário é obrigatório."),
     body("role")
         .notEmpty().withMessage("O tipo de usuário é obrigatório.")
         .isIn(['agent', 'customer', 'supervisor', 'admin']).withMessage('Tipo de usuário inválido, selecione um dos valores acima.')

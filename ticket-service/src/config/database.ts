@@ -12,7 +12,7 @@ const sequelize = new Sequelize({
     username: process.env.DB_USER!,
     password: process.env.DB_PSSWD!,
     host: process.env.DB_HOST!,
-    port: 3307,
+    port: Number(process.env.DB_PORT),
     models: [User, Ticket, Comment]
 })
 

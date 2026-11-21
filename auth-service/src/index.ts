@@ -1,4 +1,4 @@
-import dotenv from 'dotenv'
+import 'dotenv/config'
 import express from 'express'
 import cookieParser from 'cookie-parser'
 
@@ -11,9 +11,9 @@ import router from './routes/UserRoutes.js'
 //RabbitMQ
 import { connectRabbitMQ } from './config/rabbitmq.js'
 
+
 const app = express()
 
-dotenv.config()
 app.use(express.json())
 app.use(cookieParser())
 

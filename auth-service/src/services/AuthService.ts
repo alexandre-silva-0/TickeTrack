@@ -3,14 +3,14 @@ import { checkPassword, createHashedPassword } from "../utils/bcrypt.js"
 import { generateToken } from "../utils/jwt.js"
 
 //repositories
-import { createUser, getUserByEmail } from "../repositories/UserRepository.js"
+import { createUser, getUserByEmail, getUserById, updateUserRole } from "../repositories/UserRepository.js"
 
 //RabbitMQ
 import { publishMessage } from "../config/rabbitmq.js"
 
 //types
 import { User } from "../models/User.js"
-import { ICreateUserBody } from "../dtos/auth.dto.js"
+import { ICreateUserBody, IUpdateUserRole } from "../dtos/auth.dto.js"
 import { AppError } from "../errors/AppError.js"
 
 // O que pode sair do serviço sobre um usuário. Nunca o hash da senha.
@@ -57,4 +57,13 @@ export async function createNewUser(data: ICreateUserBody) {
     await publishMessage('user_created', publicUser)
 
     return { user: publicUser }
+}
+
+export async function updateRole(data: IUpdateUserRole) {
+    const user = await getUserById(Number(data.id))
+    if (!user) return null
+
+    await updateUserRole({ id: Number(data.id), role: data.role })
+
+    await publishMessage('updated_user', { data })
 }
