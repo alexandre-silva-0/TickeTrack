@@ -41,9 +41,11 @@ export async function createNewUser(data: ICreateUserBody) {
 
 export async function updateRole(data: IUpdateUserRole) {
     const user = await getUserById(Number(data.id))
-    if (!user) return null
+    if (!user) {
+        throw new AppError("Usuário não encontrado.", 404)
+    }
 
-    await updateUserRole({ id: Number(data.id), role: data.role })
+    await updateUserRole({ id: data.id, role: data.role })
 
     await publishMessage('user_role_updated', { id: data.id, role: data.role })
 

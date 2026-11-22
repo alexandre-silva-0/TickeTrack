@@ -10,6 +10,7 @@ import router from './routes/UserRoutes.js'
 
 //RabbitMQ
 import { connectRabbitMQ } from './config/rabbitmq.js'
+import { errorHandler } from './middlewares/errorHandler.js'
 
 
 const app = express()
@@ -19,9 +20,11 @@ app.use(cookieParser())
 
 app.use(router)
 
+app.use(errorHandler)
+
 
 const startServer = async () => {
-    
+
     await connectRabbitMQ()
 
     database

@@ -1,119 +1,81 @@
-//packages
+// controllers/UserController.ts
 import { Request, Response } from "express";
 
-//helpers
+//utils
 import { clearCookie, createCookie } from "../utils/cookie.js";
+import { sendSuccess } from "../utils/responses.js";
 
 //repositories
-import { getUserById, getAllUsers, updateUserRole } from "../repositories/UserRepository.js";
+import { getUserById, getAllUsers } from "../repositories/UserRepository.js";
 
 //interfaces
-import { IAuthRequest, ICreateUserBody } from "../dtos/auth.dto.js";
-import { ILoginBody } from "../dtos/auth.dto.js";
+import { IAuthRequest, ICreateUserBody, ILoginBody } from "../dtos/auth.dto.js";
 
 //RabbitMQ
 import { publishMessage } from "../config/rabbitmq.js";
 
 //services
-import { authenticate, } from "../services/AuthService.js";
+import { authenticate } from "../services/AuthService.js";
 import { createNewUser, updateRole } from "../services/UserService.js";
+
+//errors
 import { AppError } from "../errors/AppError.js";
 
 export async function createUserByAdmin(req: Request<{}, {}, ICreateUserBody>, res: Response) {
-    try {
-        const { user } = await createNewUser(req.body)
-
-        res.status(201).json({ msg: 'Usuário criado com sucesso.', data: user })
-    } catch (error) {
-        if (error instanceof AppError) {
-            res.status(error.statusCode).json({ error: error.message })
-            return
-        }
-
-        console.error(error)
-        res.status(500).json({ error: "Não foi possível criar usuário." })
-    }
+    const { user } = await createNewUser(req.body)
+    sendSuccess(res, { status: 201, data: user, msg: 'Usuário criado com sucesso.' })
 }
 
 export async function login(req: Request<{}, {}, ILoginBody>, res: Response) {
     const { email, password } = req.body
 
-    try {
-        const result = await authenticate(email, password)
-
-        if (!result) {
-            res.status(401).json({ error: "E-mail ou senha incorretos." })
-            return
-        }
-
-        createCookie(res, result.token)
-        res.status(200).json({ user: result.user })
-    } catch (error) {
-        console.error(error)
-        res.status(500).json({ error: "Não foi possível fazer login." })
+    const result = await authenticate(email, password)
+    if (!result) {
+        throw new AppError("E-mail ou senha incorretos.", 401)
     }
+
+    createCookie(res, result.token)
+    sendSuccess(res, { data: result.user, msg: "Login realizado com sucesso." })
 }
 
 export function logout(_req: Request, res: Response) {
     clearCookie(res)
-    res.sendStatus(204)
+    sendSuccess(res, { status: 204 })
 }
 
 export async function currentuser(req: IAuthRequest, res: Response) {
-    try {
-        const user = await getUserById(req.user!.id)
-        if (!user) {
-            res.status(404).json({ error: "Usuário não encontrado." })
-            return
-        }
-        res.status(200).json({ user })
-    } catch (error) {
-        console.error("Erro ao carregar usuário logado", error)
-        res.status(500).json({ errors: "Não foi possível carregar o usuário conectado." })
+    const user = await getUserById(req.user!.id)
+    if (!user) {
+        throw new AppError("Usuário não encontrado.", 404)
     }
+
+    sendSuccess(res, { data: user })
 }
 
-export async function allUsers(req: Request, res: Response) {
-    try {
-
-        const users = await getAllUsers()
-
-        res.status(200).json({ users })
-
-    } catch (error) {
-        console.error("Erro ao carregar todos os usuários", error)
-        res.status(500).json({ errors: "Não foi possível carregar todos os usuários." })
-    }
+export async function allUsers(_req: Request, res: Response) {
+    const users = await getAllUsers()
+    sendSuccess(res, { data: users })
 }
 
 export async function changeRole(req: IAuthRequest, res: Response) {
-
-    const { id } = req.params
+    const id = Number(req.params.id)
     const { role } = req.body
 
-    try {
-        const user = await updateRole({ id: Number(id), role })
-        if (!user) return res.status(404).json({ msg: "Usuário não encontrado." })
-
-        res.status(200).json({ msg: "Usuário atualizado com sucesso" })
-    } catch (error) {
-        console.error("Erro ao atualizar tipo de usuário", error)
-        res.status(500).json({ errors: "Não foi possível atualizar o tipo de usuário." })
-    }
-
+    await updateRole({ id, role })
+    sendSuccess(res, { msg: "Papel do usuário atualizado com sucesso." })
 }
 
-export async function syncAllUsers(req: IAuthRequest, res: Response) {
+export async function syncAllUsers(_req: Request, res: Response) {
     const users = await getAllUsers()
 
-    users.forEach(async (user) => {
+    for (const user of users) {
         await publishMessage('user_created', {
             id: user.id,
             name: user.name,
             email: user.email,
             role: user.role
         })
-    })
+    }
 
-    res.status(200).json({ msg: "Usuários sincronizados." })
+    sendSuccess(res, { msg: "Usuários sincronizados." })
 }

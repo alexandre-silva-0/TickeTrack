@@ -1,7 +1,7 @@
 import { Response } from "express";
 
 interface ISuccessOptions<T> {
-    status: number
+    status?: number
     data?: T
     msg?: string
 }
