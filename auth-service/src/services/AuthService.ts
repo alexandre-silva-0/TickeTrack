@@ -35,35 +35,3 @@ export async function authenticate(email: string, password: string) {
     return { user: toPublicUser(user), token }
 }
 
-export async function createNewUser(data: ICreateUserBody) {
-    const { name, email, password, role } = data
-
-    const existingUser = await getUserByEmail(email)
-    if (existingUser) {
-        throw new AppError("E-mail já cadastrado.", 409)
-    }
-
-    const hashedPassword = createHashedPassword(password)
-
-    const createdUser = await createUser({
-        name,
-        email,
-        hashedPassword,
-        role
-    })
-
-    const publicUser = toPublicUser(createdUser)
-
-    await publishMessage('user_created', publicUser)
-
-    return { user: publicUser }
-}
-
-export async function updateRole(data: IUpdateUserRole) {
-    const user = await getUserById(Number(data.id))
-    if (!user) return null
-
-    await updateUserRole({ id: Number(data.id), role: data.role })
-
-    await publishMessage('updated_user', { data })
-}

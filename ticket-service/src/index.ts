@@ -1,5 +1,5 @@
+import 'dotenv/config'
 import express from 'express'
-import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 
 //routes
@@ -14,7 +14,6 @@ import database from './config/database.js'
 import { registerNewUser } from './repositories/UserRepository.js'
 
 const app = express()
-dotenv.config()
 
 app.use(express.json())
 app.use(cookieParser())

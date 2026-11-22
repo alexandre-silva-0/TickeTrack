@@ -15,7 +15,8 @@ import { ILoginBody } from "../dtos/auth.dto.js";
 import { publishMessage } from "../config/rabbitmq.js";
 
 //services
-import { authenticate, createNewUser, updateRole } from "../services/AuthService.js";
+import { authenticate, } from "../services/AuthService.js";
+import { createNewUser, updateRole } from "../services/UserService.js";
 import { AppError } from "../errors/AppError.js";
 
 export async function createUserByAdmin(req: Request<{}, {}, ICreateUserBody>, res: Response) {
@@ -91,8 +92,10 @@ export async function changeRole(req: IAuthRequest, res: Response) {
     const { role } = req.body
 
     try {
-        await updateRole({ id: Number(id), role })
-        res.status(201).json({ msg: "Usuário atualizado com sucesso" })
+        const user = await updateRole({ id: Number(id), role })
+        if (!user) return res.status(404).json({ msg: "Usuário não encontrado." })
+
+        res.status(200).json({ msg: "Usuário atualizado com sucesso" })
     } catch (error) {
         console.error("Erro ao atualizar tipo de usuário", error)
         res.status(500).json({ errors: "Não foi possível atualizar o tipo de usuário." })

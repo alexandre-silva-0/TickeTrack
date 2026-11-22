@@ -4,7 +4,7 @@ import { User } from "../models/User.js";
 import { ICreatedUserData, IUpdateUserRole } from "../dtos/auth.dto.js";
 
 export async function getUserById(id: number) {
-    return await User.findOne({ where: { id }, raw: true })
+    return await User.findOne({ where: { id }, raw: true, attributes: { exclude: ['hashedPassword'] } })
 }
 
 export async function getUserByEmail(email: string) {

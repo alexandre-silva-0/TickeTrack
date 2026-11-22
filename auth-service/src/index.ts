@@ -21,6 +21,7 @@ app.use(router)
 
 
 const startServer = async () => {
+    
     await connectRabbitMQ()
 
     database
