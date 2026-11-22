@@ -4,9 +4,9 @@ import { IAuthRequest } from "../dtos/users.dto.js";
 
 export const checkToken = (req: IAuthRequest, res: Response, next: NextFunction) => {
     const token = req.cookies.token
-    console.log(token)
     if (!token) {
         res.status(401).json({ msg: 'Você não está autenticado. Faça login e tente novamente.' })
+        return
     }
 
     try {

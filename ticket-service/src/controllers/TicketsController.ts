@@ -9,8 +9,6 @@ import { createNewTicket } from "../repositories/TicketRepository.js"
 
 export async function createTicket(req: IAuthRequest, res: Response) {
 
-    console.log(req)
-
     const { title, description } = req.body
 
     const ticket = {
@@ -26,7 +24,8 @@ export async function createTicket(req: IAuthRequest, res: Response) {
 
         console.log(createdTicket)
     } catch (error) {
-        console.error("Não foi possível registrar seu ticket.")
+        console.error("Não foi possível registrar seu ticket.", error)
+        res.status(500).json({ error: "Não foi possível registrar seu ticket." })
     }
 
 }
