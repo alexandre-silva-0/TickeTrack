@@ -10,8 +10,6 @@ import { publishMessage } from "../config/rabbitmq.js"
 
 //types
 import { User } from "../models/User.js"
-import { ICreateUserBody, IUpdateUserRole } from "../dtos/auth.dto.js"
-import { AppError } from "../errors/AppError.js"
 
 // O que pode sair do serviço sobre um usuário. Nunca o hash da senha.
 function toPublicUser(user: User) {

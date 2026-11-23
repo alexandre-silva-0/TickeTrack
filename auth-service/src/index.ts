@@ -10,18 +10,16 @@ import router from './routes/UserRoutes.js'
 
 //RabbitMQ
 import { connectRabbitMQ } from './config/rabbitmq.js'
-import { errorHandler } from './middlewares/errorHandler.js'
+import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js'
 
 
-const app = express()
+export const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
-
 app.use(router)
-
+app.use(notFoundHandler)
 app.use(errorHandler)
-
 
 const startServer = async () => {
 
