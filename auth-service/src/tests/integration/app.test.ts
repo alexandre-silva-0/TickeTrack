@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from 'supertest'
-import { app } from "../index.js";
+import { app } from "../../index.js";
+
 
 describe("Rotas desconhecidas", () => {
     it("Responde 404 em JSON", async () => {
@@ -11,8 +12,3 @@ describe("Rotas desconhecidas", () => {
     })
 })
 
-// describe('E-mail não cadastrado', () => {
-//     it("Responde 401", async () => {
-//         const res = await request(app).post()
-//     })
-// })

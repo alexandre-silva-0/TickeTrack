@@ -1,12 +1,9 @@
 //helpers
-import { checkPassword, createHashedPassword } from "../utils/bcrypt.js"
+import { checkPassword } from "../utils/bcrypt.js"
 import { generateToken } from "../utils/jwt.js"
 
 //repositories
-import { createUser, getUserByEmail, getUserById, updateUserRole } from "../repositories/UserRepository.js"
-
-//RabbitMQ
-import { publishMessage } from "../config/rabbitmq.js"
+import { getUserByEmail } from "../repositories/UserRepository.js"
 
 //types
 import { User } from "../models/User.js"
