@@ -1,25 +1,13 @@
 import 'dotenv/config'
-import express from 'express'
-import cookieParser from 'cookie-parser'
+
+//app
+import { app } from './app.js'
 
 //db connection
 import database from './config/database.js'
 
-//routes
-import router from './routes/UserRoutes.js'
-
 //RabbitMQ
 import { connectRabbitMQ } from './config/rabbitmq.js'
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js'
-
-
-export const app = express()
-
-app.use(express.json())
-app.use(cookieParser())
-app.use(router)
-app.use(notFoundHandler)
-app.use(errorHandler)
 
 const startServer = async () => {
 
